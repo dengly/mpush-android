@@ -1,4 +1,4 @@
-package com.mpush.android;
+package com.shinemo.mpush.android;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

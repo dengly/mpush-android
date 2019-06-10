@@ -53,6 +53,7 @@ public final class MPush {
     private static final String SP_KEY_AS = "allotServer";
     private static final String SP_KEY_AT = "account";
     private static final String SP_KEY_TG = "tags";
+    private static final String SP_KEY_ALIAS = "alias";
     private static final String SP_KEY_LG = "log";
     public static MPush I = I();
     private Context ctx;
@@ -150,6 +151,9 @@ public final class MPush {
         if (clientConfig.getTags() != null) {
             editor.putString(SP_KEY_TG, clientConfig.getTags());
         }
+        if(clientConfig.getAlias() != null){
+            editor.putString(SP_KEY_ALIAS, clientConfig.getAlias());
+        }
         editor.apply();
         this.clientConfig = clientConfig;
     }
@@ -204,14 +208,15 @@ public final class MPush {
      *
      * @param userId 要绑定的账号
      */
-    public void bindAccount(String userId, String tags) {
+    public void bindAccount(String userId, String alias, String tags) {
         if (hasInit()) {
             sp.edit().putString(SP_KEY_AT, userId).apply();
             sp.edit().putString(SP_KEY_TG, tags).apply();
             if (hasStarted() && client.isRunning()) {
-                client.bindUser(userId, tags);
+                client.bindUser(userId, alias, tags);
             } else if (clientConfig != null) {
                 clientConfig.setUserId(userId);
+                clientConfig.setTags(tags);
             }
         }
     }
@@ -323,6 +328,10 @@ public final class MPush {
 
         if (clientConfig.getUserId() == null) {
             clientConfig.setUserId(sp.getString(SP_KEY_AT, null));
+        }
+
+        if (clientConfig.getAlias() == null) {
+            clientConfig.setAlias(sp.getString(SP_KEY_ALIAS, null));
         }
 
         if (clientConfig.getTags() == null) {

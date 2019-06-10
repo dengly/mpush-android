@@ -1,10 +1,14 @@
 package com.mpush.demo;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.BitmapFactory;
-import android.os.Looper;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.telephony.TelephonyManager;
@@ -15,7 +19,6 @@ import android.widget.Toast;
 
 import com.mpush.android.BuildConfig;
 import com.mpush.android.MPush;
-import com.mpush.android.MPushLog;
 import com.mpush.android.Notifications;
 import com.mpush.android.R;
 import com.mpush.api.Constants;
@@ -25,16 +28,14 @@ import com.mpush.api.http.HttpRequest;
 import com.mpush.api.http.HttpResponse;
 import com.mpush.client.ClientConfig;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Handler;
 
 public class MainActivity extends AppCompatActivity {
+
+    private String[] permissions = {Manifest.permission.READ_PHONE_STATE};
+    protected static final int ACTION_REQUEST_PERMISSIONS = 0x001;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,9 +50,35 @@ public class MainActivity extends AppCompatActivity {
             EditText et = (EditText) findViewById(R.id.alloc);
             et.setText(alloc);
         }
+
+        boolean allPermissionsGranted = checkPermissions(permissions);
+        if (!allPermissionsGranted) {
+            // 有权限未授权
+            requestPermissions(permissions);
+        }
     }
 
-    private void initPush(String allocServer, String userId) {
+    //请求权限
+    protected void requestPermissions(String... permissions) {
+        if (permissions == null || permissions.length == 0) {
+            return;
+        }
+        ActivityCompat.requestPermissions(this, permissions, ACTION_REQUEST_PERMISSIONS);
+    }
+
+    // 检测权限
+    protected boolean checkPermissions(String[] neededPermissions) {
+        if (neededPermissions == null || neededPermissions.length == 0) {
+            return true;
+        }
+        boolean allGranted = true;
+        for (String neededPermission : neededPermissions) {
+            allGranted &= ContextCompat.checkSelfPermission(this.getApplicationContext(), neededPermission) == PackageManager.PERMISSION_GRANTED;
+        }
+        return allGranted;
+    }
+
+    private void initPush(String allocServer, String userId, String alias, String tags) {
         //公钥有服务端提供和私钥对应
         String publicKey = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCghPCWCobG8nTD24juwSVataW7iViRxcTkey/B792VZEhuHjQvA3cAJgx2Lv8GnX8NIoShZtoCg3Cx6ecs+VEPD2fBcg2L4JK7xldGpOJ3ONEAyVsLOttXZtNXvyDZRijiErQALMTorcgi79M5uVX9/jMv2Ggb2XAeZhlLD28fHwIDAQAB";
 
@@ -63,12 +90,18 @@ public class MainActivity extends AppCompatActivity {
                 .setLogger(new MyLog(this, (EditText) findViewById(R.id.log)))
                 .setLogEnabled(BuildConfig.DEBUG)
                 .setEnableHttpProxy(true)
-                .setUserId(userId);
+                .setUserId(userId)
+                .setAlias(alias)
+                .setTags(tags);
         MPush.I.checkInit(getApplicationContext()).setClientConfig(cc);
     }
 
     private String getDeviceId() {
         TelephonyManager tm = (TelephonyManager) this.getSystemService(Activity.TELEPHONY_SERVICE);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(permissions);
+            return null;
+        }
         String deviceId = tm.getDeviceId();
         if (TextUtils.isEmpty(deviceId)) {
             String time = Long.toString((System.currentTimeMillis() / (1000 * 60 * 60)));
@@ -81,7 +114,7 @@ public class MainActivity extends AppCompatActivity {
         EditText et = (EditText) findViewById(R.id.from);
         String userId = et.getText().toString().trim();
         if (!TextUtils.isEmpty(userId)) {
-            MPush.I.bindAccount(userId, "mpush:" + (int) (Math.random() * 10));
+            MPush.I.bindAccount(userId, userId, "mpush:" + (int) (Math.random() * 10));
         }
     }
 
@@ -101,8 +134,12 @@ public class MainActivity extends AppCompatActivity {
 
         EditText etUser = (EditText) findViewById(R.id.from);
         String userId = etUser.getText().toString().trim();
+        EditText etAlias = (EditText) findViewById(R.id.alias);
+        String alias = etAlias.getText().toString().trim();
+        EditText etTags = (EditText) findViewById(R.id.tags);
+        String tags = etTags.getText().toString().trim();
 
-        initPush(allocServer, userId);
+        initPush(allocServer, userId, alias, tags);
 
         MPush.I.checkInit(this.getApplication()).startPush();
         Toast.makeText(this, "start push", Toast.LENGTH_SHORT).show();

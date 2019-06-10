@@ -4,9 +4,11 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.text.TextUtils;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.mpush.android.MPush;
+import com.mpush.android.MPushLog;
 import com.mpush.android.MPushService;
 import com.mpush.android.Notifications;
 import com.mpush.api.Constants;
@@ -22,6 +24,7 @@ public class MyReceiver extends BroadcastReceiver {
             int messageId = intent.getIntExtra(MPushService.EXTRA_PUSH_MESSAGE_ID, 0);
             String message = new String(bytes, Constants.UTF_8);
 
+            Log.i("MyReceiver","收到新的通知：" + message);
             Toast.makeText(context, "收到新的通知：" + message, Toast.LENGTH_SHORT).show();
 
             if (messageId > 0) MPush.I.ack(messageId);
