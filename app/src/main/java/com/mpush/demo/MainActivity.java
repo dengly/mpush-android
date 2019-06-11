@@ -111,10 +111,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void bindUser(View btn) {
-        EditText et = (EditText) findViewById(R.id.from);
-        String userId = et.getText().toString().trim();
+        EditText etUser = (EditText) findViewById(R.id.from_userId);
+        String userId = etUser.getText().toString().trim();
+        EditText etAlias = (EditText) findViewById(R.id.from_alias);
+        String alias = etAlias.getText().toString().trim();
+        EditText etTags = (EditText) findViewById(R.id.from_tags);
+        String tags = etTags.getText().toString().trim();
         if (!TextUtils.isEmpty(userId)) {
-            MPush.I.bindAccount(userId, userId, "mpush:" + (int) (Math.random() * 10));
+            MPush.I.bindAccount(userId, alias, tags);
         }
     }
 
@@ -132,11 +136,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-        EditText etUser = (EditText) findViewById(R.id.from);
+        EditText etUser = (EditText) findViewById(R.id.from_userId);
         String userId = etUser.getText().toString().trim();
-        EditText etAlias = (EditText) findViewById(R.id.alias);
+        EditText etAlias = (EditText) findViewById(R.id.from_alias);
         String alias = etAlias.getText().toString().trim();
-        EditText etTags = (EditText) findViewById(R.id.tags);
+        EditText etTags = (EditText) findViewById(R.id.from_tags);
         String tags = etTags.getText().toString().trim();
 
         initPush(allocServer, userId, alias, tags);
@@ -158,10 +162,14 @@ public class MainActivity extends AppCompatActivity {
             allocServer = "http://" + allocServer;
         }
 
-        EditText toET = (EditText) findViewById(R.id.to);
+        EditText toET = (EditText) findViewById(R.id.to_userId);
         String to = toET.getText().toString().trim();
+        EditText toETAlias = (EditText) findViewById(R.id.to_alias);
+        String toAlias = toETAlias.getText().toString().trim();
+        EditText toETTags = (EditText) findViewById(R.id.to_tags);
+        String toTags = toETTags.getText().toString().trim();
 
-        EditText fromET = (EditText) findViewById(R.id.from);
+        EditText fromET = (EditText) findViewById(R.id.from_userId);
         String from = fromET.getText().toString().trim();
 
         EditText helloET = (EditText) findViewById(R.id.httpProxy);
@@ -170,8 +178,17 @@ public class MainActivity extends AppCompatActivity {
         if (TextUtils.isEmpty(hello)) hello = "hello";
 
         JSONObject params = new JSONObject();
-        params.put("userId", to);
-        params.put("hello", from + " say:" + hello);
+        if(to!=null && to.length()>0){
+            params.put("userId", to);
+        }
+        if(toAlias!=null && toAlias.length()>0){
+            params.put("alias", toAlias);
+        }
+        if(toTags!=null && toTags.length()>0){
+            params.put("tags", toTags);
+        }
+        params.put("title", "新消息");
+        params.put("content", from + " say:" + hello);
 
         final Context context = this.getApplicationContext();
         HttpRequest request = new HttpRequest(HttpMethod.POST, allocServer + "/push");
