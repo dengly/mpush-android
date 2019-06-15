@@ -21,7 +21,7 @@ public class MyReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         if (MPushService.ACTION_MESSAGE_RECEIVED.equals(intent.getAction())) {
             byte[] bytes = intent.getByteArrayExtra(MPushService.EXTRA_PUSH_MESSAGE);
-            int messageId = intent.getIntExtra(MPushService.EXTRA_PUSH_MESSAGE_ID, 0);
+            long messageId = intent.getLongExtra(MPushService.EXTRA_PUSH_MESSAGE_ID, 0);
             String message = new String(bytes, Constants.UTF_8);
 
             Log.i("MyReceiver","收到新的通知：" + message);

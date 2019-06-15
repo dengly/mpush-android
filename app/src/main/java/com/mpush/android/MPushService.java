@@ -120,7 +120,7 @@ public final class MPushService extends Service implements ClientListener {
     }
 
     @Override
-    public void onReceivePush(Client client, byte[] content, int messageId) {
+    public void onReceivePush(Client client, byte[] content, long messageId) {
         sendBroadcast(new Intent(ACTION_MESSAGE_RECEIVED)
                 .addCategory(BuildConfig.APPLICATION_ID)
                 .putExtra(EXTRA_PUSH_MESSAGE, content)

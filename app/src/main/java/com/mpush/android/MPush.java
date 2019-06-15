@@ -34,6 +34,7 @@ import com.mpush.api.http.HttpResponse;
 import com.mpush.api.push.PushContext;
 import com.mpush.client.ClientConfig;
 import com.mpush.util.DefaultLogger;
+import com.mpush.util.Strings;
 
 import java.util.concurrent.Future;
 
@@ -60,6 +61,9 @@ public final class MPush {
     private ClientConfig clientConfig;
     private SharedPreferences sp;
     /*package*/ Client client;
+
+    private static String osVersion = Strings.isBlank(android.os.Build.BRAND) ? Build.VERSION.RELEASE
+            : android.os.Build.BRAND+" "+Build.VERSION.RELEASE;
 
     /**
      * 获取MPUSH实例
@@ -241,7 +245,7 @@ public final class MPush {
      * @param messageId 要ACK的消息ID
      * @return
      */
-    public boolean ack(int messageId) {
+    public boolean ack(long messageId) {
         if (hasStarted() && client.isRunning()) {
             client.ack(messageId);
             return true;
@@ -306,8 +310,8 @@ public final class MPush {
                     .setPublicKey(publicKey)
                     .setAllotServer(allocServer)
                     .setDeviceId(deviceId)
-                    .setOsName(Constants.DEF_OS_NAME)
-                    .setOsVersion(Build.VERSION.RELEASE)
+                    .setOsName(Constants.DEF_ANDROID_OS_NAME)
+                    .setOsVersion(osVersion)
                     .setClientVersion(clientVersion)
                     .setLogger(new MPushLog())
                     .setLogEnabled(logEnabled);
@@ -322,8 +326,12 @@ public final class MPush {
             clientConfig.setSessionStorage(new SPSessionStorage(sp));
         }
 
+        if (clientConfig.getOsName() == null) {
+            clientConfig.setOsName(Constants.DEF_ANDROID_OS_NAME);
+        }
+
         if (clientConfig.getOsVersion() == null) {
-            clientConfig.setOsVersion(Build.VERSION.RELEASE);
+            clientConfig.setOsVersion(osVersion);
         }
 
         if (clientConfig.getUserId() == null) {
